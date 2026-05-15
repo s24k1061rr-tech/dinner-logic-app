@@ -311,3 +311,42 @@ def show_auth_screen():
                     if st.button("✨ 新規登録はこちら", use_container_width=True):
                         st.session_state['show_register'] = True
                         st.rerun()
+
+import streamlit as st
+import extra_streamlit_components as stx
+
+# Cookieマネジャーの初期化
+cookie_manager = stx.CookieManager()
+
+def main():
+    st.title("ログイン維持アプリ")
+
+    # 1. Cookieからログイン情報を取得
+    saved_user = cookie_manager.get(cookie="username")
+
+    # セッション状態の初期化
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    # Cookieにデータがあれば自動ログイン
+    if saved_user and not st.session_state.logged_in:
+        st.session_state.username = saved_user
+        st.session_state.logged_in = True
+
+    # 2. 画面表示の切り替え
+    if not st.session_state.logged_in:
+        user_input = st.text_input("ユーザー名を入力")
+        if st.button("ログイン"):
+            # Cookieに保存（有効期限は秒単位：例は1日）
+            cookie_manager.set("username", user_input, expires_at=86400)
+            st.session_state.logged_in = True
+            st.rerun()
+    else:
+        st.write(f"おかえりなさい、{st.session_state.username} さん！")
+        if st.button("ログアウト"):
+            cookie_manager.delete("username")
+            st.session_state.logged_in = False
+            st.rerun()
+
+if __name__ == "__main__":
+    main()
