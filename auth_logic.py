@@ -311,41 +311,48 @@ def show_auth_screen():
                     if st.button("✨ 新規登録はこちら", use_container_width=True):
                         st.session_state['show_register'] = True
                         st.rerun()
-
 import streamlit as st
 import extra_streamlit_components as stx
+from datetime import datetime, timedelta
+import time
 
-# Cookieマネジャーの初期化
 cookie_manager = stx.CookieManager()
 
 def main():
-    st.title("ログイン維持アプリ")
-
-    # 1. Cookieからログイン情報を取得
-    saved_user = cookie_manager.get(cookie="username")
-
-    # セッション状態の初期化
+    # ログイン状態の確認（スピナー付き）
     if "logged_in" not in st.session_state:
-        st.session_state.logged_in = False
+        with st.spinner("ログイン情報を確認中..."):
+            time.sleep(0.5) 
+            saved_user = cookie_manager.get(cookie="username")
+            if saved_user:
+                st.session_state.logged_in = True
+                st.session_state.username = saved_user
+            else:
+                st.session_state.logged_in = False
 
-    # Cookieにデータがあれば自動ログイン
-    if saved_user and not st.session_state.logged_in:
-        st.session_state.username = saved_user
-        st.session_state.logged_in = True
-
-    # 2. 画面表示の切り替え
-    if not st.session_state.logged_in:
+    if not st.session_state.get("logged_in"):
         user_input = st.text_input("ユーザー名を入力")
         if st.button("ログイン"):
-            # Cookieに保存（有効期限は秒単位：例は1日）
-            cookie_manager.set("username", user_input, expires_at=86400)
-            st.session_state.logged_in = True
-            st.rerun()
+            if user_input:
+                # --- ここがポイント！ ---
+                # 30日後の日時を計算
+                expires_date = datetime.now() + timedelta(days=30)
+                
+                # Cookieに保存（expires_atに日時オブジェクトを渡す）
+                cookie_manager.set(
+                    "username", 
+                    user_input, 
+                    expires_at=expires_date  # 30日後に設定
+                )
+                
+                st.session_state.logged_in = True
+                st.session_state.username = user_input
+                st.rerun()
     else:
-        st.write(f"おかえりなさい、{st.session_state.username} さん！")
+        st.write(f"ログイン中: {st.session_state.username}")
         if st.button("ログアウト"):
             cookie_manager.delete("username")
-            st.session_state.logged_in = False
+            st.session_state.clear()
             st.rerun()
 
 if __name__ == "__main__":
