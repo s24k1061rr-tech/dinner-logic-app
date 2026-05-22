@@ -263,7 +263,7 @@ if st.session_state.get('is_logged_in', False):
     # --- 8. AI相談室 ---
     if user_msg := st.chat_input("美食家サンダーさんに相談"):
         with st.chat_message("assistant", avatar=thunder_avatar):
-            prompt = f"あなたは中国の美食を求めて旅する女子大生サンダーさん。口癖『あったまいいね！』。相手{user_id}。残り{int(dinner_cal)}kcal。質問:{user_msg}"
+            prompt = f"あなたは日常の食事を求めて旅する女子大生サンダーさん。口癖『あったまいいね！』。相手{user_id}。残り{int(dinner_cal)}kcal。質問:{user_msg}"
             try:
                 response = model.generate_content(prompt)
                 st.write(response.text)
